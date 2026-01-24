@@ -16,10 +16,10 @@ const int micPin = 35;
 const int buttonPin = 14;
 
 // Sampling configuration
-const int SAMPLE_RATE = 8000;              // 8 kHz sample rate (good for guitar: 80-400 Hz)
-const int SAMPLE_COUNT = 1024;             // Number of samples per measurement
-const unsigned long SAMPLE_PERIOD_US = 1000000 / SAMPLE_RATE;  // Microseconds between samples
-const unsigned long PRINT_INTERVAL_MS = 500;  // Print frequency every 500ms
+const int SAMPLE_RATE = 8000;
+const int SAMPLE_COUNT = 1024;
+const unsigned long SAMPLE_PERIOD_US = 1000000 / SAMPLE_RATE;
+const unsigned long PRINT_INTERVAL_MS = 500;
 
 // Sample buffer
 int16_t samples[SAMPLE_COUNT];
@@ -31,11 +31,9 @@ unsigned int previousButtonState;
 unsigned long startPress = 0;
 unsigned long lastPrintTime = 0;
 
-// DC offset (will be calibrated)
-int dcOffset = 2048;  // Default to mid-scale for 12-bit ADC
+int dcOffset = 2048;
 
 void setup() {
-  // Higher baud rate for faster serial output
   Serial.begin(115200);
   
   // 12 bit ADC (0-4095)
@@ -44,7 +42,6 @@ void setup() {
   // Attenuation from 1.1V --> 3.3V
   analogSetAttenuation(ADC_11db);
   
-  // Configure button pin as input with pull-up
   pinMode(buttonPin, INPUT_PULLUP);
   
   previousButtonState = digitalRead(buttonPin);
@@ -54,7 +51,6 @@ void setup() {
 }
 
 void loop() {
-  // Handle button input
   handleButton();
   
   // If sampling is active, collect samples and detect frequency
