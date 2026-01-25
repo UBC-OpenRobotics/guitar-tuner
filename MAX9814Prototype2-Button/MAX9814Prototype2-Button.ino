@@ -9,6 +9,10 @@
 const int micPin = 35;
 const int buttonPin = 14;
 
+#define ALPHA 1
+#define SAMPLING_COUNT 8
+#define BAUD_RATE 9600
+
 bool recordingNow;
 
 unsigned int currentButtonState;
@@ -21,7 +25,7 @@ unsigned int startRecordingTime;
 
 void setup() {
   // Baud rate (definitely go higher later)
-  Serial.begin(9600);
+  Serial.begin(BAUD_RATE);
 
   // 12 bit ADC (0 - 4095)
   // ADC Unit / 4095 * 3.3 = Voltage
@@ -45,22 +49,22 @@ void loop() {
   
   if (risingEdge) {
     Serial.println("RISING EDGE DETECTED");
-    startPress = millis();
+    startPress = micros();
   }
 
-  else if (fallingEdge && (millis() - startPress > 1000)) {
+  else if (fallingEdge && (micros() - startPress > 1000000)) {
     Serial.println("FALLING EDGE WITH LONG ENOUGH PRESS DETECTED");
     if (!recordingNow) {
-      startRecordingTime = millis();
+      startRecordingTime = micros();
       voltage = 0;
     }
 
     else if (recordingNow) {
       Serial.print("Average value: ");
-      Serial.print(voltage/((millis() - startRecordingTime)/1000));
+      Serial.print(voltage/((micros() - startRecordingTime)/1000000));
       Serial.println(" ADC units");
       Serial.print("Time: ");
-      Serial.print((millis() - startRecordingTime)/1000);
+      Serial.print((micros() - startRecordingTime)/1000000);
       Serial.println(" seconds");
     }
     recordingNow = !recordingNow;
@@ -71,23 +75,31 @@ void loop() {
   }
 
   if (recordingNow) {
-    int rawValue = analogRead(micPin);
+    int smoothedValue = readMic();
 
     // Bottom
-    Serial.print(0);
+    Serial.print(1024);
     Serial.print(" ");
 
     // Top
-    Serial.print(4095);
+    Serial.print(2048);
     Serial.print(" ");
 
     // Reading
-    Serial.println(rawValue);
-    voltage += rawValue;
+    Serial.println(smoothedValue);
+    voltage += smoothedValue;
 
     // Small delay, remove once doing FFT
-    delayMicroseconds(200);
+    // delayMicroseconds(200);
   }
 
   previousButtonState = currentButtonState;
+}
+
+int readMic() {
+  long sum = 0;
+  for (int i = 0; i < SAMPLING_COUNT; i++) {
+    sum += analogRead(micPin);
+  }
+  return sum / SAMPLING_COUNT; 
 }
