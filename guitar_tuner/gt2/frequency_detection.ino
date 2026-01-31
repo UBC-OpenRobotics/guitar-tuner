@@ -11,7 +11,7 @@
  * Detected frequency is printed to Serial console.
  */
 
-// Pin definitions (same as gt.ino)
+// Pin definitions
 const int micPin = 35;
 const int buttonPin = 14;
 
@@ -20,6 +20,7 @@ const int SAMPLE_RATE = 8000;
 const int SAMPLE_COUNT = 1024;
 const unsigned long SAMPLE_PERIOD_US = 1000000 / SAMPLE_RATE;
 const unsigned long PRINT_INTERVAL_MS = 500;
+const int DEADBAND = 50;
 
 // Sample buffer
 int16_t samples[SAMPLE_COUNT];
@@ -31,6 +32,7 @@ unsigned int previousButtonState;
 unsigned long startPress = 0;
 unsigned long lastPrintTime = 0;
 
+// placeholder for the dc offset (the imaginary line in the middle of the waveform, our "zero")
 int dcOffset = 2048;
 
 void setup() {
@@ -74,7 +76,7 @@ void loop() {
         Serial.println(" Hz");
         
         // Print corresponding note (for reference)
-        printNearestNote(frequency);
+        //printNearestNote(frequency);
       } else {
         Serial.println("No frequency detected (signal too quiet or no periodicity)");
       }
@@ -99,7 +101,7 @@ void handleButton() {
     
     if (samplingActive) {
       Serial.println("\n=== SAMPLING STARTED ===");
-      lastPrintTime = 0;  // Force immediate measurement
+      lastPrintTime = 0;
     } else {
       Serial.println("\n=== SAMPLING STOPPED ===");
     }
@@ -109,12 +111,13 @@ void handleButton() {
 }
 
 void collectSamples() {
+  
   unsigned long nextSampleTime = micros();
   
   for (int i = 0; i < SAMPLE_COUNT; i++) {
+    
     // Wait for the next sample time
     while (micros() < nextSampleTime) {
-      // Busy wait for precise timing
     }
     
     samples[i] = analogRead(micPin);
@@ -122,8 +125,8 @@ void collectSamples() {
   }
 }
 
+// Calculate the mean of the samples to obtain the dc offset
 void calibrateDCOffset() {
-  // Calculate average (DC offset) of the samples
   long sum = 0;
   for (int i = 0; i < SAMPLE_COUNT; i++) {
     sum += samples[i];
@@ -132,20 +135,18 @@ void calibrateDCOffset() {
 }
 
 float detectFrequency() {
-  // Zero-crossing detection with hysteresis
-  const int HYSTERESIS = 50;  // Threshold to avoid noise triggering crossings
   
   int crossingCount = 0;
   int firstCrossingIndex = -1;
   int lastCrossingIndex = -1;
   
-  // Find zero crossings (from below to above only, for consistency)
+  // Find zero crossings (from below to above only, for now)
   for (int i = 1; i < SAMPLE_COUNT; i++) {
     int value = samples[i] - dcOffset;
     int prevValue = samples[i - 1] - dcOffset;
     
     // Detect rising edge crossing
-    if (prevValue < -HYSTERESIS && value > HYSTERESIS) {
+    if (prevValue < -DEADBAND && value > DEADBAND) {
       if (firstCrossingIndex == -1) {
         firstCrossingIndex = i;
       }
@@ -165,11 +166,6 @@ float detectFrequency() {
   float periods = crossingCount - 1;  // Number of complete periods
   
   float frequency = periods / timeSpanSeconds;
-  
-  // Sanity check: guitar frequencies are typically 80-1200 Hz
-  if (frequency < 60 || frequency > 1500) {
-    return 0;
-  }
   
   return frequency;
 }
