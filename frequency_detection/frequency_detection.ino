@@ -65,6 +65,14 @@ void loop() {
       
       // Calibrate DC offset
       calibrateDCOffset();
+
+      // Print the what is in the buffer minus the dc offset
+      Serial.print("Samples: ");
+      for (int i = 0; i < SAMPLE_COUNT; i++) {
+        Serial.print(samples[i] - dcOffset);
+        Serial.print(", ");
+      }
+      Serial.println();
       
       // Detect frequency using zero-crossing
       float frequency = detectFrequency();
