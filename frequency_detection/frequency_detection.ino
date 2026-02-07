@@ -148,18 +148,28 @@ float detectFrequency() {
   int firstCrossingIndex = -1;
   int lastCrossingIndex = -1;
   
+  // Track last value outside deadband
+  bool haveLastBelowDeadband = false;
+  int lastValueBelowDeadband = 0;
+  
   // Find zero crossings (from below to above only, for now)
-  for (int i = 1; i < SAMPLE_COUNT; i++) {
+  for (int i = 0; i < SAMPLE_COUNT; i++) {
     int value = samples[i] - dcOffset;
-    int prevValue = samples[i - 1] - dcOffset;
     
-    // Detect rising edge crossing
-    if (prevValue < -DEADBAND && value > DEADBAND) {
+    // Update last value below deadband when we're outside the deadband
+    if (value < -DEADBAND) {
+      lastValueBelowDeadband = value;
+      haveLastBelowDeadband = true;
+    }
+    
+    // Detect rising edge crossing: we went from below deadband to above deadband
+    if (value > DEADBAND && haveLastBelowDeadband) {
       if (firstCrossingIndex == -1) {
         firstCrossingIndex = i;
       }
       lastCrossingIndex = i;
       crossingCount++;
+      haveLastBelowDeadband = false;  // Consume for this crossing; need new below before next
     }
   }
   
