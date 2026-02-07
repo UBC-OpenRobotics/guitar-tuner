@@ -67,10 +67,10 @@ void loop() {
       calibrateDCOffset();
 
       // Print the what is in the buffer minus the dc offset
-      Serial.print("Samples: ");
+      // Serial.print("Samples: ");
       for (int i = 0; i < SAMPLE_COUNT; i++) {
-        Serial.print(samples[i] - dcOffset);
-        Serial.print(", ");
+        // Serial.print(samples[i] - dcOffset);
+        // Serial.print(", ");
       }
       Serial.println();
       
@@ -84,7 +84,7 @@ void loop() {
         Serial.println(" Hz");
         
         // Print corresponding note (for reference)
-        //printNearestNote(frequency);
+        printNearestNote(frequency);
       } else {
         Serial.println("No frequency detected (signal too quiet or no periodicity)");
       }
