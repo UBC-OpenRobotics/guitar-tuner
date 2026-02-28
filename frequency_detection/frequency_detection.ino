@@ -11,6 +11,8 @@
  * Detected frequency is printed to Serial console.
  */
 
+//---------------PARAMETERS---------------//
+
 // Pin definitions
 const int micPin = 35;
 const int buttonPin = 14;
@@ -19,8 +21,10 @@ const int buttonPin = 14;
 const int SAMPLE_RATE = 8000;
 const int SAMPLE_COUNT = 1024;
 const unsigned long SAMPLE_PERIOD_US = 1000000 / SAMPLE_RATE;
-const unsigned long PRINT_INTERVAL_MS = 500;
+const unsigned long PRINT_INTERVAL_MS = 50;
 const int DEADBAND = 50;
+
+//----------------------------------------//
 
 // Sample buffer
 int16_t samples[SAMPLE_COUNT];
@@ -32,7 +36,8 @@ unsigned int previousButtonState;
 unsigned long startPress = 0;
 unsigned long lastPrintTime = 0;
 
-// placeholder for the dc offset (the imaginary line in the middle of the waveform, our "zero")
+// Placeholder for the dc offset (the imaginary line in the middle of the waveform, our "zero")
+// Could just remove technically b/c before first iteration we calculate the dcOffset
 int dcOffset = 2048;
 
 void setup() {
@@ -44,13 +49,16 @@ void setup() {
   // Attenuation from 1.1V --> 3.3V
   analogSetAttenuation(ADC_11db);
   
+  // Button Pin (Input)
   pinMode(buttonPin, INPUT_PULLUP);
-  
+
+  // Button Edge Detection
   previousButtonState = digitalRead(buttonPin);
   
-  Serial.println("Frequency Detector Ready");
-  Serial.println("Press and hold button (>1s) to start/stop sampling");
+  // Serial.println("Frequency Detector Ready");
+  // Serial.println("Press and hold button (>1s) to start/stop sampling");
 }
+
 
 void loop() {
   handleButton();
@@ -66,33 +74,61 @@ void loop() {
       // Calibrate DC offset
       calibrateDCOffset();
 
-      // Print the what is in the buffer minus the dc offset
-      Serial.print("Samples: ");
-      for (int i = 0; i < SAMPLE_COUNT; i++) {
-        Serial.print(samples[i] - dcOffset);
-        Serial.print(", ");
-      }
-      Serial.println();
+      // Used to test best Gain
+      // for (int i = 0; i < SAMPLE_COUNT; i++) {
+      //   Serial.print(-2048); // Bottom bound for the plotter
+      //   Serial.print(" ");
+      //   Serial.print(2048);  // Top bound for the plotter
+      //   Serial.print(" ");
+      //   Serial.println(samples[i] - dcOffset); // Buffer(raw value) - dcOffset
+      // }
       
       // Detect frequency using zero-crossing
       float frequency = detectFrequency();
+
       
       // Print results
       if (frequency > 0) {
         Serial.print("Detected Frequency: ");
-        Serial.print(frequency, 1);
+        Serial.print(frequency, 1); // Print to 1 decimal place
         Serial.println(" Hz");
         
         // Print corresponding note (for reference)
-        //printNearestNote(frequency);
+        printNearestNote(frequency);
+
+        // Print static bounds to lock the Serial Plotter Y-axis
+        Serial.print(0);       // Lower bound (0 Hz)
+        Serial.print(" ");     
+        Serial.print(400);     // Upper bound (400 Hz )
+        Serial.print(" ");     
+        Serial.println(frequency); // Data
       } else {
-        Serial.println("No frequency detected (signal too quiet or no periodicity)");
+        // Serial.println("No frequency detected (signal too quiet or no periodicity)");
       }
       
       lastPrintTime = currentTime;
     }
   }
 }
+
+
+// GAIN TESTING
+// void loop() {
+//   // 1. Read the microphone directly (no buffer)
+//   int rawValue = analogRead(micPin);
+  
+//   // 2. Print the bounds to lock the Y-axis
+//   Serial.print(0);       // Bottom of ADC limit
+//   Serial.print(" ");
+//   Serial.print(4095);    // Top of ADC limit
+//   Serial.print(" ");
+  
+//   // 3. Print the raw audio instantly
+//   Serial.println(rawValue);
+  
+//   // 4. A tiny delay to control the visual scrolling speed
+//   delay(1); 
+// }
 
 void handleButton() {
   currentButtonState = digitalRead(buttonPin);
@@ -164,7 +200,8 @@ float detectFrequency() {
     
     // Detect rising edge crossing: we went from below deadband to above deadband
     if (value > DEADBAND && haveLastBelowDeadband) {
-      if (firstCrossingIndex == -1) {
+      // Only need the first crossing index b/c we can sample 1 period, 2 periods, ... n periods
+      if (firstCrossingIndex == -1) { 
         firstCrossingIndex = i;
       }
       lastCrossingIndex = i;
@@ -173,14 +210,14 @@ float detectFrequency() {
     }
   }
   
-  // Need at least 2 crossings to calculate frequency
+  // Need at least 2 crossings to calculate frequency (one full period)
   if (crossingCount < 2) {
     return 0;
   }
   
   // Calculate frequency from number of crossings and time span
-  int sampleSpan = lastCrossingIndex - firstCrossingIndex;
-  float timeSpanSeconds = (float)sampleSpan / SAMPLE_RATE;
+  int sampleSpan = lastCrossingIndex - firstCrossingIndex; 
+  float timeSpanSeconds = (float)sampleSpan / SAMPLE_RATE; // sample indicies / (sample indicies / seconds) = seconds
   float periods = crossingCount - 1;  // Number of complete periods
   
   float frequency = periods / timeSpanSeconds;
@@ -206,7 +243,7 @@ void printNearestNote(float frequency) {
     }
   }
   
-  // Calculate cents offset
+  // Calculate cents offset (Distance to nearest note)
   float cents = 1200 * log2(frequency / noteFreqs[closestIdx]);
   
   Serial.print("  Nearest note: ");
