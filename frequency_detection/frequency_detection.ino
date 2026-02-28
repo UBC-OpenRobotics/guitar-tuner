@@ -21,8 +21,8 @@ const int buttonPin = 14;
 const int SAMPLE_RATE = 8000;
 const int SAMPLE_COUNT = 1024;
 const unsigned long SAMPLE_PERIOD_US = 1000000 / SAMPLE_RATE;
-const unsigned long PRINT_INTERVAL_MS = 50;
-const int DEADBAND = 50;
+const unsigned long PRINT_INTERVAL_MS = 500;
+const int DEADBAND = 10;
 
 //----------------------------------------//
 
@@ -74,6 +74,19 @@ void loop() {
       // Calibrate DC offset
       calibrateDCOffset();
 
+      //--LOW PASS FILTER TESTING--//
+      // --- ADD EMA LOW-PASS FILTER HERE ---
+      float alpha = 0.4; // The smoothing factor. Lower = smoother, but distorts the wave if too low.
+      float smoothedValue = samples[0]; 
+      
+      for (int i = 1; i < SAMPLE_COUNT; i++) {
+        // Calculate the moving average
+        smoothedValue = (alpha * samples[i]) + ((1.0 - alpha) * smoothedValue);
+        // Overwrite the raw sample with the smoothed sample
+        samples[i] = (int16_t)smoothedValue; 
+      }
+      //---//
+
       // Used to test best Gain
       // for (int i = 0; i < SAMPLE_COUNT; i++) {
       //   Serial.print(-2048); // Bottom bound for the plotter
@@ -88,7 +101,7 @@ void loop() {
 
       
       // Print results
-      if (frequency > 0) {
+      if (frequency > 60 && frequency <= 350) {
         Serial.print("Detected Frequency: ");
         Serial.print(frequency, 1); // Print to 1 decimal place
         Serial.println(" Hz");
@@ -169,7 +182,7 @@ void collectSamples() {
   }
 }
 
-// Calculate the mean of the samples to obtain the dc offset
+// Calculate the mean of the samples to obtain the dc offset (the middle line)
 void calibrateDCOffset() {
   long sum = 0;
   for (int i = 0; i < SAMPLE_COUNT; i++) {
@@ -178,6 +191,7 @@ void calibrateDCOffset() {
   dcOffset = sum / SAMPLE_COUNT;
 }
 
+// Returns the frequency based on the contents of samples[]
 float detectFrequency() {
   
   int crossingCount = 0;
