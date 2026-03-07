@@ -129,6 +129,7 @@ void collectSamples() {
     }
     
     samples[i] = analogRead(micPin);
+    Serial.print(samples[i]);
     nextSampleTime += SAMPLE_PERIOD_US;
   }
 }
