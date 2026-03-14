@@ -1,5 +1,5 @@
-#include "pitch_algorithm.h"
-#include "../config.h"
+#include "pitch_detection/pitch_algorithm.h"
+#include "config.h"
 
 #include <cmath>
 #include <cstdlib>

@@ -2,7 +2,7 @@
 
 #include <cstdint>
 #include <vector>
-#include "../config.h"
+#include "config.h"
 
 struct AudioFrame {
     int16_t samples[SAMPLE_COUNT]; // Array of audio samples 
