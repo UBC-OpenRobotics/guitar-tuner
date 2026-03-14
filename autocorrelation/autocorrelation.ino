@@ -122,35 +122,62 @@ void collectSamples() {
   }
 }
 
+
+// --- THE AUTOCORRELATION ALGORITHM --- //
 float detectFrequencyAutoCor() {
+  
+  // 1. FIND THE MIDDLE LINE (DC OFFSET)
+  // We need the wave to swing into positive and negative numbers so that 
+  // peaks * valleys = negative scores, and peaks * peaks = positive scores.
   long sum = 0;
   for (int i = 0; i < SAMPLE_COUNT; i++) {
     sum += samples[i];
   }
   int dcOffset = sum / SAMPLE_COUNT;
   
+  // 2. CONVERT HERTZ TO "LAGS" (ARRAY INDICES)
+  // We only care about guitar frequencies (60Hz to 400Hz).
+  // To save processing power, we figure out exactly how many array indices 
+  // those frequencies represent.
+  // Example: 8000 Hz sample rate / 400 Hz highest note = a lag of 20 array slots.
   int minLag = SAMPLE_RATE / MAX_FREQ; 
   int maxLag = SAMPLE_RATE / MIN_FREQ; 
   
+  // Variables to keep track of which lag produced the biggest mathematical spike
   int64_t maxCorrelation = 0; 
   int bestLag = -1;
 
+  // 3. SLIDE THE WAVE (THE OUTER LOOP)
+  // We test every possible lag distance between our min and max limits.
   for (int lag = minLag; lag <= maxLag; lag++) {
     int64_t correlation = 0;
     
+    // 4. MULTIPLY AND SUM (THE INNER LOOP)
+    // For the current lag, multiply the original wave against the shifted wave.
     for (int i = 0; i < SAMPLE_COUNT - lag; i++) {
+      // Subtracting dcOffset pulls the wave down so it revolves around 0
       int32_t sample1 = samples[i] - dcOffset;
       int32_t sample2 = samples[i + lag] - dcOffset;
+      
+      // Multiply the points together and add them to the running total
+      // We cast to int64_t because multiplying massive audio numbers will 
+      // overflow standard 32-bit variables and crash the math.
       correlation += (int64_t)sample1 * sample2; 
     }
     
+    // 5. RECORD THE WINNER
+    // If this specific lag produced the highest score so far, save it!
     if (correlation > maxCorrelation) {
       maxCorrelation = correlation;
       bestLag = lag;
     }
   }
   
+  // 6. CONVERT THE WINNING LAG BACK TO HERTZ
   if (bestLag > 0) {
+    // Noise Gate: Even total silence produces a tiny correlation score due to 
+    // microscopic electrical noise. If the max score is under 5,000,000, we 
+    // assume no strings are actually vibrating and return 0.
     if (maxCorrelation > 5000000) { 
       return (float)SAMPLE_RATE / bestLag;
     }
