@@ -21,3 +21,18 @@ struct MotorCommand {
     int direction = 0;
     int pwm = 0;
 };
+
+struct PIDController {
+    float kp = 0.0f;
+    float ki = 0.0f;
+    float kd = 0.0f;
+
+    float integral = 0.0f;
+    float previousError = 0.0f;
+
+    float outputMin = -255.0f;
+    float outputMax = 255.0f;
+
+    unsigned long previousTimeMs = 0;
+    bool firstRun = true;
+};
