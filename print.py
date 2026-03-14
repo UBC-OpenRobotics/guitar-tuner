@@ -15,4 +15,5 @@ def print_tree(path, prefix=""):
             print_tree(full_path, prefix + extension)
 
 if __name__ == "__main__":
-    print_tree("C:/Users/noahl/Documents/Design Team/open_robotics/guitar-tuner/rtos-boilerplate")
+    print(".")
+    print_tree(os.getcwd())
