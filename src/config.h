@@ -9,6 +9,7 @@ constexpr int BUTTON_PIN = 14;
 // Sampling
 constexpr int SAMPLE_RATE = 8000;
 constexpr int SAMPLE_COUNT = 1024;
+constexpr unsigned long SAMPLE_PERIOD_US = 1000000UL / SAMPLE_RATE;
 
 // Printing / timing (remove for now)
 constexpr unsigned long BUTTON_HOLD_MS = 1000;
