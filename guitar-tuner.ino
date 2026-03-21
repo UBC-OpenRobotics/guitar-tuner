@@ -2,13 +2,13 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 
-#include "config.h"
-#include "system/shared_types.h"
+#include "src/config.h"
+#include "src/system/shared_types.h"
 
-#include "audio_capture/audio_capture.h"
-#include "pitch_detection/pitch_detector.h"
-#include "control/pid_controller.h"
-#include "control/motor_drive.h"
+#include "src/audio_capture/audio_capture.h"
+#include "src/pitch_detection/pitch_detector.h"
+#include "src/control/pid_controller.h"
+#include "src/control/motor_drive.h"
 
 // Queues
 QueueHandle_t g_audioQueue = nullptr;

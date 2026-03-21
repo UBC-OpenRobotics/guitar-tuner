@@ -37,7 +37,9 @@ constexpr float MOTOR_OUTPUT_DEADBAND = 8.0f;
 
 // Task stack sizes
 constexpr uint32_t AUDIO_TASK_STACK = 4096;
-constexpr uint32_t PROCESS_TASK_STACK = 8192;
+constexpr uint32_t PITCH_TASK_STACK = 8192;
+constexpr uint32_t PID_TASK_STACK = 4096;
+constexpr uint32_t MOTOR_TASK_STACK = 4096;
 
 // Task priorities (lower = higher priority)
 constexpr int AUDIO_TASK_PRIORITY = 2;

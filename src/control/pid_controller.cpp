@@ -1,5 +1,5 @@
 #include "pid_controller.h"
-#include "config.h"
+#include "../config.h"
 
 #include <cmath>
 
