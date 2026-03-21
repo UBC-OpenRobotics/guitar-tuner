@@ -42,6 +42,9 @@ void audioTask(void* pvParameters) {
 
         // collectAudioFrame(frame);
 
+        // Simulate delay from the task 
+        vTaskDelay(pdMS_TO_TICKS(128));
+
         // Keep only the newest frame
         xQueueOverwrite(g_audioQueue, &frame);
     }
