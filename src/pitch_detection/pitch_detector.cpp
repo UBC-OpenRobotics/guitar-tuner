@@ -1,5 +1,5 @@
-#include "pitch_detector.h"
-#include "pitch_algorithm.h"
+#include "pitch_detection/pitch_detector.h"
+#include "pitch_detection/pitch_algorithm.h"
 
 #include <cmath> // For abs
 #include <cstring> // For strncpy
