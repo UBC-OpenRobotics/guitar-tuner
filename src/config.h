@@ -1,10 +1,16 @@
 #pragma once
 
+#ifdef ARDUINO
 #include <Arduino.h>
+#else
+#include <cstdint>
+#endif
 
-// Pins
+// Pins (only relevant for Arduino)
+#ifdef ARDUINO
 constexpr int MIC_PIN = 35;
 constexpr int BUTTON_PIN = 14;
+#endif
 
 // Sampling
 constexpr int SAMPLE_RATE = 8000;
@@ -49,7 +55,8 @@ constexpr int MOTOR_TASK_PRIORITY = 1;
 
 // Task cores (ESP32 dual-core: 0 or 1)
 constexpr int AUDIO_TASK_CORE = 0;
-constexpr int PITCH_TASK_CORE = 0;
+// Move Pitch processing to Core 1 to prevent starving the Audio loop/Watchdog on Core 0
+constexpr int PITCH_TASK_CORE = 1;
 constexpr int PID_TASK_CORE = 1;
 constexpr int MOTOR_TASK_CORE = 1;
 

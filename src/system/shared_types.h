@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SHARED_TYPES_H
+#define SHARED_TYPES_H
 
 #include <cstdint>
 #include <vector>
@@ -36,3 +37,5 @@ struct PIDController {
     unsigned long previousTimeMs = 0;
     bool firstRun = true;
 };
+
+#endif // SHARED_TYPES_H

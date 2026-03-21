@@ -1,10 +1,11 @@
 # Compiler settings
 CXX = g++
-# Added -Isrc to support Arduino-style folder structure
-CXXFLAGS = -std=c++17 -Wall -Wextra -g3 -Isrc -I.
+# -I. covers top-level includes; -Isrc covers legacy or relative includes if any
+CXXFLAGS = -std=c++17 -Wall -Wextra -g3 -I. -Isrc
 
 # Source files (Host Build)
-SRCS = test/main.cpp \
+# NOTE: We exclude src/main.cpp from HOST build because it contains Arduino setup/loop
+SRCS = test/test_main.cpp \
        src/audio_capture/audio_capture.cpp \
        src/control/motor_drive.cpp \
        src/control/pid_controller.cpp \
@@ -63,10 +64,9 @@ monitor:
 # Combined build, upload, monitor
 deploy: upload monitor
 
-# Clean target to remove object files and the executable
+# Clean target
 clean:
 	del /Q /F $(subst /,\,$(OBJS)) $(TARGET)
 	if exist $(BUILD_DIR) rmdir /S /Q $(BUILD_DIR)
-
 
 .PHONY: all run_host clean setup_arduino compile_esp32 upload monitor deploy
