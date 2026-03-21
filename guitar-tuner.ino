@@ -31,19 +31,15 @@ void audioTask(void* pvParameters) {
     AudioFrame frame;
 
     while (true) {
+        g_samplingActive = updateSamplingStateFromButton(g_samplingActive);
 
-        // TODO: Place holder for the audio capture
-        // g_samplingActive = updateSamplingStateFromButton(g_samplingActive);
+        if (!g_samplingActive) {
+            vTaskDelay(pdMS_TO_TICKS(500));
+            Serial.println("Audio capture paused");
+            continue;
+        }
 
-        // if (!g_samplingActive) {
-        //     vTaskDelay(pdMS_TO_TICKS(20));
-        //     continue;
-        // }
-
-        // collectAudioFrame(frame);
-
-        // Simulate delay from the task 
-        vTaskDelay(pdMS_TO_TICKS(128));
+        collectAudioFrame(frame);
 
         // Keep only the newest frame
         xQueueOverwrite(g_audioQueue, &frame);
@@ -102,7 +98,7 @@ void setup() {
     delay(500);
 
     // TODO: Place holder for the audio capture
-    //initAudioCapture();
+    initAudioCapture();
 
     initPIDController(
         g_pid,
