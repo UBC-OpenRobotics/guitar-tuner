@@ -15,6 +15,12 @@ constexpr unsigned long SAMPLE_PERIOD_US = 1000000UL / SAMPLE_RATE;
 constexpr unsigned long BUTTON_HOLD_MS = 1000;
 constexpr unsigned long NO_PITCH_PRINT_INTERVAL_MS = 500;
 
+// Pitch detection diagnostic flags (negative = no valid pitch)
+constexpr float PITCH_NO_PERIODIC_SIGNAL = -1.0f;
+constexpr float PITCH_COR_THRESHOLD_NOT_MET = -2.0f;
+constexpr float PITCH_OUT_OF_RANGE = -3.0f;
+constexpr float PITCH_NOT_STABLE = -4.0f;
+
 // Guitar Frequency Bounds
 constexpr float MIN_FREQ = 60.0f;
 constexpr float MAX_FREQ = 400.0f;
@@ -50,7 +56,7 @@ constexpr int MOTOR_TASK_PRIORITY = 1;
 
 // Task cores (ESP32 dual-core: 0 or 1)
 constexpr int AUDIO_TASK_CORE = 0;
-constexpr int PITCH_TASK_CORE = 0;
+constexpr int PITCH_TASK_CORE = 1;
 constexpr int PID_TASK_CORE = 1;
 constexpr int MOTOR_TASK_CORE = 1;
 

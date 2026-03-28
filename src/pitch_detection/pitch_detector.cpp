@@ -29,29 +29,40 @@ PitchResult PitchDetector::detectPitch(const AudioFrame& frame) {
     // Get frequency result from pitch_algorithm.cpp
     float frequency = detectFrequencyAutoCor(frame.samples, SAMPLE_COUNT, SAMPLE_RATE);
 
+    // If autocorrelation returned a diagnostic flag, pass it through
+    if (frequency < 0.0f) {
+        result.frequencyHz = frequency;
+        stableCount = 0;
+        lastFrequency = 0.0f;
+        return result;
+    }
+
     // Stability Filter Logic
     // Only accept frequencies within the expected guitar range (meant to void noise)
     if (frequency >= MIN_FREQ && frequency <= MAX_FREQ) {
-        
+
         // If the reading is close to the previous one
         if (abs(frequency - lastFrequency) <= FREQ_TOLERANCE) {
             stableCount++;
         } else {
             stableCount = 1; // Reset if it jumped too much (there was noise)
         }
-        
+
         // Update the last frequency to the current (similar to edge detection)
         lastFrequency = frequency;
-        
+
         // Only consider it a defined pitch if it's stable
         if (stableCount >= REQUIRED_STABLE_READS) {
             result.frequencyHz = frequency;
             updateNearestNote(result, frequency);
+        } else {
+            result.frequencyHz = PITCH_NOT_STABLE;
         }
     } else {
         // Signal is out of range and/or it picked up unwanted noise
         stableCount = 0;
         lastFrequency = 0.0f;
+        result.frequencyHz = PITCH_OUT_OF_RANGE;
     }
     
     return result;

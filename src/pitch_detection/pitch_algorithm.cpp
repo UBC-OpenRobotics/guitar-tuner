@@ -55,10 +55,15 @@ float detectFrequencyAutoCor(const int16_t* samples, int count, int sampleRate) 
         }
     }
 
-    // If there was a wave and it's correlation threshold is met (the noise was loud enough), output a frequency
-    if (bestLag > 0 && maxCorrelation > MIN_CORRELATION_THRESHOLD) {
-            return (float)sampleRate / bestLag;
+    // If no periodic signal was found
+    if (bestLag <= 0) {
+        return PITCH_NO_PERIODIC_SIGNAL;
     }
 
-    return 0.0f;
+    // If the correlation threshold is not met (signal too weak/noisy)
+    if (maxCorrelation <= MIN_CORRELATION_THRESHOLD) {
+        return PITCH_COR_THRESHOLD_NOT_MET;
+    }
+
+    return (float)sampleRate / bestLag;
 }

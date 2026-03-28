@@ -35,4 +35,11 @@ struct PIDController {
 
     unsigned long previousTimeMs = 0;
     bool firstRun = true;
+
+    // Last-computed terms (for debugging)
+    float lastError = 0.0f;
+    float lastDt = 0.0f;
+    float lastP = 0.0f;
+    float lastI = 0.0f;
+    float lastD = 0.0f;
 };

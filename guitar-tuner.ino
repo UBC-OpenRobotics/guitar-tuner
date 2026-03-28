@@ -43,6 +43,9 @@ void audioTask(void* pvParameters) {
 
         // Keep only the newest frame
         xQueueOverwrite(g_audioQueue, &frame);
+
+        // Yield to let IDLE0 feed the watchdog on this core
+        vTaskDelay(1);
     }
 }
 
@@ -57,6 +60,9 @@ void pitchTask(void* pvParameters) {
             PitchResult pitch = g_pitchDetector.detectPitch(frame);
 
             xQueueOverwrite(g_pitchQueue, &pitch);
+
+            // Yield to let IDLE0 feed the watchdog on this core
+            vTaskDelay(1);
         }
     }
 }
@@ -74,7 +80,18 @@ void pidTask(void* pvParameters) {
 
             xQueueOverwrite(g_motorQueue, &cmd);
             
-            Serial.println("PID Output: " + String(pidOutput));
+            if (pitch.frequencyHz == PITCH_NO_PERIODIC_SIGNAL) {
+                Serial.println("Pitch: NO_PERIODIC_SIGNAL");
+            } else if (pitch.frequencyHz == PITCH_COR_THRESHOLD_NOT_MET) {
+                Serial.println("Pitch: COR_THRESHOLD_NOT_MET");
+            } else if (pitch.frequencyHz == PITCH_OUT_OF_RANGE) {
+                Serial.println("Pitch: OUT_OF_RANGE");
+            } else if (pitch.frequencyHz == PITCH_NOT_STABLE) {
+                Serial.println("Pitch: NOT_STABLE");
+            } else {
+                Serial.println("Frequency: " + String(pitch.frequencyHz, 2) + " Hz (" + String(pitch.nearestNote) + " " + String(pitch.centsDeviation, 1) + " cents)");
+            }
+            Serial.println("PID: error=" + String(g_pid.lastError, 2) + " dt=" + String(g_pid.lastDt, 4) + " P=" + String(g_pid.lastP, 2) + " I=" + String(g_pid.lastI, 2) + " D=" + String(g_pid.lastD, 2) + " out=" + String(pidOutput, 2));
             Serial.println("Motor Command sent: " + String(cmd.enabled) + " " + String(cmd.direction) + " " + String(cmd.pwm));
         }
     }

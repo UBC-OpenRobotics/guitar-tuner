@@ -40,11 +40,10 @@ float computePID(PIDController& pid,
                  float targetFrequencyHz,
                  const PitchResult& pitch) {
     
-    // If we want to add validation.
-    // // if (!pitch.valid || pitch.frequencyHz <= 0.0f) {
-    //     resetPIDController(pid);
-    //     return 0.0f;
-    // }
+    if (pitch.frequencyHz <= 0.0f) {
+        resetPIDController(pid);
+        return 0.0f;
+    }
 
     float error = targetFrequencyHz - pitch.frequencyHz;
 
@@ -72,10 +71,18 @@ float computePID(PIDController& pid,
     float derivative = (error - pid.previousError) / dt;
 
     // Sum the three terms
-    float output =
-        pid.kp * error +
-        pid.ki * pid.integral +
-        pid.kd * derivative;
+    float pTerm = pid.kp * error;
+    float iTerm = pid.ki * pid.integral;
+    float dTerm = pid.kd * derivative;
+
+    float output = pTerm + iTerm + dTerm;
+
+    // Store terms for debugging
+    pid.lastError = error;
+    pid.lastDt = dt;
+    pid.lastP = pTerm;
+    pid.lastI = iTerm;
+    pid.lastD = dTerm;
 
     // Clamp the output to the PWM range
     output = clampValue(output, pid.outputMin, pid.outputMax);
