@@ -96,6 +96,7 @@ void pitchTask(void* pvParameters) {
         if (xQueueReceive(g_audioQueue, &frame, portMAX_DELAY) == pdTRUE) {
             PitchResult pitch = g_pitchDetector.detectPitch(frame);
             
+            if (pitch.frequencyHz > 0) 
             // Print debugging info onto Serial monitor
             Serial.printf("Freq: %.2f Hz | Note: %s | Deviation: %.2f cents\n", 
                           pitch.frequencyHz, pitch.nearestNote, pitch.centsDeviation);
@@ -122,7 +123,7 @@ void pidTask(void* pvParameters) {
             
             xQueueOverwrite(g_motorQueue, &cmd);
             
-            Serial.println("Pitch processed.");
+            // Serial.println("Pitch processed.");
         }
     }
 }
@@ -134,7 +135,7 @@ void motorTask(void* pvParameters) {
     while (true) {
         if (xQueueReceive(g_motorQueue, &cmd, portMAX_DELAY) == pdTRUE) {
             // motor.setSpeed(cmd.speed);
-            Serial.println("Motor command received.");
+            // Serial.println("Motor command received.");
         }
     }
 }

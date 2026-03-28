@@ -1,5 +1,5 @@
-#include "src/audio_capture/audio_capture.h"
-#include "src/config.h"
+#include "audio_capture.h"
+#include "../config.h"
 #include <Arduino.h>
 
 /**
